@@ -13,7 +13,7 @@ function useSignUp() {
         const sucess=handleInputErrors(fullName, username, password, confirmPassword, gender);
         if(!sucess) return ;
         try{
-            const res=await fetch("http://localhost:5000/api/auth/signup",{
+            const res=await fetch("/api/auth/signup",{
                method:"POST",
                headers:{
                    "Content-Type":"application/json"
