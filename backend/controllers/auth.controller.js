@@ -2,7 +2,6 @@ import User from "../model/user.model.js";
 import bcrypt from "bcryptjs";
 import generateTokenAndSetCookie from "../utils/generateToken.js";
 export const signup = async (req, res) => {
-
     try {
         const { fullName, userName, password, confirmPassword, gender } = req.body;
 
@@ -12,10 +11,9 @@ export const signup = async (req, res) => {
             });
         }
 
-        const myuser = await User.findOne({ userName }) // Add await here
-        if (myuser) {
+        const existingUser = await User.findOne({ userName });
+        if (existingUser) {
             console.log("User already exists");
-            console.log(myuser);
             return res.status(400).json({
                 message: "User already exists",
             });
@@ -30,55 +28,56 @@ export const signup = async (req, res) => {
         const newUser = new User({
             fullName,
             userName,
-            password:hashedPassword,
-            confirmPassword,
+            password: hashedPassword,
             gender,
             profilePic: gender === "male" ? boyProfilePic : girlProfilePic,
         });
-        if(newUser){
-             generateTokenAndSetCookie(newUser._id, res);
-            await newUser.save();
-    
-            res.status(201).json({
-                _id: newUser._id,
-                fullName: newUser.fullName,
-                userName: newUser.userName,
-                profilePic: newUser.profilePic,
-            });
-        }
-        else{
-            res.status(400).send({message:"invalid user details"})
-        }
+
+        await newUser.save(); // Save the new user first
+
+        const token = await generateTokenAndSetCookie(newUser._id, res); // Now generate the token
+
+        res.status(201).json({
+            _id: newUser._id,
+            fullName: newUser.fullName,
+            userName: newUser.userName,
+            profilePic: newUser.profilePic,
+            token,
+        });
     } catch (err) {
         console.log(err.message);
-        res.status(500).json({ message: "internal server error" });
+        res.status(500).json({ message: "Internal server error" });
     }
 
-    console.log("login user");
+    console.log("signup user");
 };
+
 
 
 export const login=async(req,res)=>{
     try{
         const {userName,password}=req.body
         const user=await User.findOne({userName})
+        console.log(userName,password)
         if(user){
             const isMatch=await bcrypt.compare(password,user.password)
             if(isMatch){
-                generateTokenAndSetCookie(user._id,res)
+               const temp=await generateTokenAndSetCookie(user._id,res)
+               console.log(temp)
                 res.status(200).json({
                     _id:user._id,
                     fullName:user.fullName,
                     userName:user.userName,
-                    profilePic:user.profilePic
+                    profilePic:user.profilePic,
+                    token:temp
                 })
             }
             else{
-                res.status(400).json({message:"invalid credentials"})
+                res.status(400).json({err:"invalid credentials"})
             }
         }
         else{
-            res.status(400).json({message:"user not found or invalid "})
+            res.status(400).json({error:"user not found or invalid "})
         }
     }
     catch(err){

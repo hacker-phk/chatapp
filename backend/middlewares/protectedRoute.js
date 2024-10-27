@@ -5,6 +5,8 @@ const protectedRoute =async (req, res, next) => {
     
     try {
         const token = req.cookies.token;
+        // console.log(req.cookies,"in protected route");
+        
         
         if(!token){
             return res.status(401).json({message:"unauthorized - no token provided"});
