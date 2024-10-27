@@ -2,10 +2,11 @@ import Message from "./Message";
 import useGetMessages from "../../hooks/useGetMessages";
 import MessageSkeleton from "../skelton/MessageSkelton";
 import { useEffect,useRef } from "react";
+import useListenMessages from "../../hooks/useListenMessages";
 const Messages = () => {
 	const {messages,loading}=useGetMessages();
 	const lastMessageRef = useRef();
-
+	useListenMessages();
 	useEffect(() => {
 		setTimeout(() => {
 			lastMessageRef.current?.scrollIntoView({ behavior: "smooth" });
